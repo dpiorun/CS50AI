@@ -110,6 +110,19 @@ def test_sample_pagerank(corpus, damping_factor, n, expected):
                 "2.html": 0.475,
                 "3.html": 0.475
             }, 0.001)
+        ),
+        (
+            {
+                "1.html": {}, 
+                "2.html": {"3.html"}, 
+                "3.html": {"2.html"}
+            },
+            0.85,
+            pytest.approx({
+                "1.html": 0.0699,
+                "2.html": 0.465,
+                "3.html": 0.465
+            }, 0.001)
         )
     ]
 )
@@ -124,6 +137,6 @@ def test_iterate_pagerank(corpus, damping_factor, expected):
     sum = 0
     for page_rank in list(output.keys()):
         sum = sum + output[page_rank]
-    assert sum == 1 # values in output should sum up to 1
+    assert sum == pytest.approx(1) # values in output should sum up to 1
 
     

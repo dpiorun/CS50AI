@@ -137,6 +137,9 @@ def iterate_pagerank(corpus, damping_factor):
         linked_pages[page_name] = set()
 
     for page in corpus:
+        if len(corpus[page]) == 0:
+            corpus.update({page: set(pages)})
+        
         for link in corpus[page]:
             linked_pages[link].add(page)
 
