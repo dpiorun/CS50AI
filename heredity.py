@@ -128,6 +128,20 @@ def powerset(s):
     ]
 
 
+def get_number_of_genes(person: str, one_gene: set[str], two_genes: set[str]) -> int:
+    if person in one_gene:
+        return 1
+    elif person in two_genes:
+        return 2
+    return 0
+
+
+def probability_of_getting_gen_from_the_parent(num_of_gens: int) -> float:
+    if num_of_gens == 0:
+        return PROBS["mutation"]
+    return 1 - PROBS["mutation"]
+
+
 def joint_probability(people, one_gene, two_genes, have_trait):
     """
     Compute and return a joint probability.
@@ -139,7 +153,53 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    probabilities = {}
+    for person in people:
+        num_of_genes = get_number_of_genes(person, one_gene, two_genes)
+
+        if people[person]["mother"] is None and people[person]["father"] is None:
+            probabilities[person] = (
+                PROBS["gene"][num_of_genes]
+                * PROBS["trait"][num_of_genes][person in have_trait]
+            )
+
+        elif (
+            people[person]["mother"] is not None
+            and people[person]["father"] is not None
+        ):
+            probability_from_mother = probability_of_getting_gen_from_the_parent(
+                get_number_of_genes(people[person]["mother"], one_gene, two_genes)
+            )
+            probability_from_father = probability_of_getting_gen_from_the_parent(
+                get_number_of_genes(people[person]["father"], one_gene, two_genes)
+            )
+            probability = 0
+
+            if person in one_gene:
+                probability = probability_from_mother * (
+                    1 - probability_from_father
+                ) + probability_from_father * (1 - probability_from_mother)
+            elif person in two_genes:
+                probability = probability_from_mother * probability_from_father
+            else:
+                probability = (1 - probability_from_mother) * (
+                    1 - probability_from_father
+                )
+
+            probabilities[person] = (
+                probability * PROBS["trait"][num_of_genes][person in have_trait]
+            )
+
+        else:
+            raise NotImplementedError(
+                "The task assumes that either both parents are defined or both are None"
+            )
+
+    retval = 1
+    for person in probabilities:
+        retval = retval * probabilities[person]
+
+    return retval
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
