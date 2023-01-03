@@ -139,6 +139,8 @@ def get_number_of_genes(person: str, one_gene: set[str], two_genes: set[str]) ->
 def probability_of_getting_gen_from_the_parent(num_of_gens: int) -> float:
     if num_of_gens == 0:
         return PROBS["mutation"]
+    elif num_of_gens == 1:
+        return 0.5
     return 1 - PROBS["mutation"]
 
 
@@ -153,12 +155,12 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    probabilities = {}
+    tmp_probabilities = {}
     for person in people:
         num_of_genes = get_number_of_genes(person, one_gene, two_genes)
 
         if people[person]["mother"] is None and people[person]["father"] is None:
-            probabilities[person] = (
+            tmp_probabilities[person] = (
                 PROBS["gene"][num_of_genes]
                 * PROBS["trait"][num_of_genes][person in have_trait]
             )
@@ -176,17 +178,16 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             probability = 0
 
             if person in one_gene:
-                probability = probability_from_mother * (
-                    1 - probability_from_father
-                ) + probability_from_father * (1 - probability_from_mother)
+                probability = (
+                    probability_from_mother * (1 - probability_from_father)
+                    + probability_from_father * (1 - probability_from_mother)
+                )
             elif person in two_genes:
                 probability = probability_from_mother * probability_from_father
             else:
-                probability = (1 - probability_from_mother) * (
-                    1 - probability_from_father
-                )
+                probability = (1 - probability_from_mother) * (1 - probability_from_father)
 
-            probabilities[person] = (
+            tmp_probabilities[person] = (
                 probability * PROBS["trait"][num_of_genes][person in have_trait]
             )
 
@@ -196,8 +197,8 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             )
 
     retval = 1
-    for person in probabilities:
-        retval = retval * probabilities[person]
+    for person in tmp_probabilities:
+        retval = retval * tmp_probabilities[person]
 
     return retval
 
@@ -209,7 +210,10 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities:
+        num_of_genes = get_number_of_genes(person, one_gene, two_genes)
+        probabilities[person]["gene"][num_of_genes] = probabilities[person]["gene"][num_of_genes] + p
+        probabilities[person]["trait"][person in have_trait] = probabilities[person]["trait"][person in have_trait] + p
 
 
 def normalize(probabilities):
@@ -217,7 +221,14 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    for person in probabilities:
+        for key in probabilities[person]:
+            sum = 0
+            for value in probabilities[person][key]:
+                sum = sum + probabilities[person][key][value]
+            if sum != 1:
+                for value in probabilities[person][key]:
+                    probabilities[person][key][value] = probabilities[person][key][value] * (1/sum)
 
 
 if __name__ == "__main__":
