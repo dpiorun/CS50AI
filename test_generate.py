@@ -105,3 +105,32 @@ def test_ac3_with_no_solution(failed_crossword_creator):
     output = failed_crossword_creator.ac3()
 
     assert output == False
+
+
+@pytest.mark.parametrize(
+    "assignment,expected",
+    [
+        (
+            {
+                Variable(0, 1, 'down', 5): "foo",
+                Variable(1, 4, 'down', 4): "foo",
+                Variable(0, 1, 'across', 3): "foo",
+                Variable(4, 1, 'across', 4): "foo"
+            },
+            True
+        ),
+        (
+            {
+                Variable(0, 1, 'down', 5): "foo"
+            },
+            False
+        )
+    ]
+)
+def test_assignment_complete(assignment, expected, crossword0_creator):
+    """
+    It should return True if `assignment` is complete (i.e., assigns a value to each
+    crossword variable); return False otherwise.    
+    """
+    output = crossword0_creator.assignment_complete(assignment)
+    assert output == expected
