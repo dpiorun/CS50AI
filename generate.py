@@ -100,7 +100,7 @@ class CrosswordCreator():
          constraints; in this case, the length of the word.)
         """
         self.domains = {
-            v: set(x for x in self.domains[v] if len(x) == v.length) 
+            v: set(x for x in self.domains[v] if len(x) == v.length)
             for v in self.domains
         }
 
@@ -113,7 +113,17 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        raise NotImplementedError
+        overlap_x, overlap_y = self.crossword.overlaps[x, y]
+        init_length = len(self.domains[x])
+
+        self.domains[x] = set(
+            word_x for word_x in self.domains[x]
+            if set(
+                word_y for word_y in self.domains[y]
+                if word_y[overlap_y] == word_x[overlap_x] and word_y != word_x
+            ) != set()
+        )
+        return len(self.domains[x]) != init_length
 
     def ac3(self, arcs=None):
         """
