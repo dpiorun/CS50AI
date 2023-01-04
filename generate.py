@@ -113,7 +113,11 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        overlap_x, overlap_y = self.crossword.overlaps[x, y]
+        overlap = self.crossword.overlaps[x, y]
+        if overlap is None:
+            return False
+
+        overlap_x, overlap_y = overlap
         init_length = len(self.domains[x])
 
         self.domains[x] = set(
@@ -134,7 +138,19 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+        queue = set(
+            (x, y) for x in self.domains
+            for y in self.crossword.neighbors(x)
+        ) if arcs is None else set(arcs)
+
+        while queue != set():
+            x, y = queue.pop()
+            if self.revise(x, y):
+                if self.domains[x] == set():
+                    return False
+                for z in (self.crossword.neighbors(x) - {y}):
+                    queue.add((z, x))
+        return True
 
     def assignment_complete(self, assignment):
         """
