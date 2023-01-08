@@ -184,6 +184,10 @@ def test_assignment_complete(assignment: dict, expected: bool, crossword0_creato
             },
             True
         ),
+        (
+            {},
+            True
+        ),
     ]
 )
 def test_consistent(assignment: dict, expected: bool, crossword0_creator: CrosswordCreator):
@@ -197,4 +201,47 @@ def test_consistent(assignment: dict, expected: bool, crossword0_creator: Crossw
     * The function should return True if the assignment is consistent and return False otherwise
     """
     output = crossword0_creator.consistent(assignment)
+    assert output == expected
+
+
+@pytest.mark.parametrize(
+    "var,assignment,expected",
+    [
+        (
+            Variable(4, 1, 'across', 4),
+            {},
+            # eliminates accordingly `n` choices [4, 5, 6]
+            ['NINE', 'FIVE', 'FOUR']
+        ),
+        (
+            Variable(4, 1, 'across', 4),
+            {Variable(1, 4, 'down', 4): 'FIVE'},
+            # eliminates accordingly `n` choices [4, 5]
+            ['NINE', 'FOUR']
+        )
+    ]
+
+)
+def test_order_domain_values(var: Variable, assignment: dict, expected: list[str], crossword0_creator: CrosswordCreator):
+    """
+    It should return a list of all of the values in the domain of var, ordered according to the least-constraining values heuristic.
+    * `var` will be a Variable object, representing a variable in the puzzle.
+    * Recall that the least-constraining values heuristic is computed as the number of values
+      ruled out for neighboring unassigned variables. That is to say, if assigning var to a particular
+      value results in eliminating `n` possible choices for neighboring variables, you should order your
+      results in ascending order of `n`.
+    * Note that any variable present in `assignment already` has a value, and therefore shouldn’t
+      be counted when computing the number of values ruled out for neighboring unassigned variables.
+    * For domain values that eliminate the same number of possible choices for neighboring variables,
+      any ordering is acceptable.
+
+    self.domains = {
+        Variable(0, 1, 'across', 3): {'TWO', 'ONE', 'SIX', 'TEN'}, 
+        Variable(0, 1, 'down', 5): {'THREE', 'EIGHT', 'SEVEN'}, 
+        Variable(4, 1, 'across', 4): {'NINE', 'FOUR', 'FIVE'}, 
+        Variable(1, 4, 'down', 4): {'NINE', 'FOUR', 'FIVE'}
+    }
+    """
+    crossword0_creator.enforce_node_consistency()
+    output = crossword0_creator.order_domain_values(var, assignment)
     assert output == expected
