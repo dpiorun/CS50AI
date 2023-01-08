@@ -18,7 +18,7 @@ def failed_crossword_creator():
     return CrosswordCreator(crossword)
 
 
-def test_enforce_node_consistency(crossword0_creator):
+def test_enforce_node_consistency(crossword0_creator: CrosswordCreator):
     """
     It should remove any values that are inconsistent with a variable's unary
     constraints; in this case, the length of the word.
@@ -51,7 +51,7 @@ def test_enforce_node_consistency(crossword0_creator):
         )
     ]
 )
-def test_revise(x, y, expected_x, expected_output, crossword0_creator):
+def test_revise(x: Variable, y: Variable, expected_x: set[str], expected_output: bool, crossword0_creator: CrosswordCreator):
     """
     It should remove values from `domains[x]` for which there is no
     possible corresponding value for `y` in `domains[y]`.
@@ -66,7 +66,7 @@ def test_revise(x, y, expected_x, expected_output, crossword0_creator):
     assert output == expected_output
 
 
-def test_ac3(crossword0_creator):
+def test_ac3(crossword0_creator: CrosswordCreator):
     """
     It should begin with initial list of all arcs in the problem, if no arcs are provided.
     """
@@ -83,7 +83,7 @@ def test_ac3(crossword0_creator):
     assert output == True
 
 
-def test_ac3_with_arcs(crossword0_creator):
+def test_ac3_with_arcs(crossword0_creator: CrosswordCreator):
     """
     It should not change domains if empty list of arcs was provided.
     """
@@ -97,7 +97,7 @@ def test_ac3_with_arcs(crossword0_creator):
     assert output == True
 
 
-def test_ac3_with_no_solution(failed_crossword_creator):
+def test_ac3_with_no_solution(failed_crossword_creator: CrosswordCreator):
     """
     It should return false if there is no possible solution.
     """
@@ -127,10 +127,74 @@ def test_ac3_with_no_solution(failed_crossword_creator):
         )
     ]
 )
-def test_assignment_complete(assignment, expected, crossword0_creator):
+def test_assignment_complete(assignment: dict, expected: bool, crossword0_creator: CrosswordCreator):
     """
     It should return True if `assignment` is complete (i.e., assigns a value to each
     crossword variable); return False otherwise.    
     """
     output = crossword0_creator.assignment_complete(assignment)
+    assert output == expected
+
+
+@pytest.mark.parametrize(
+    "assignment,expected",
+    [
+        (
+            {
+                Variable(0, 1, 'down', 5): 'SEVEN',
+                Variable(0, 1, 'across', 3): 'ONE',
+            },
+            False
+        ),
+        (
+            {
+                Variable(1, 4, 'down', 4): 'FIVE',
+                Variable(4, 1, 'across', 4): 'FIVE'
+            },
+            False
+        ),
+        (
+            {
+                Variable(0, 1, 'down', 5): 'SEVEN',
+                Variable(1, 4, 'down', 4): 'FIVE',
+                Variable(0, 1, 'across', 3): 'ONE',
+                Variable(4, 1, 'across', 4): 'NINE'
+            },
+            False
+        ),
+        (
+            {
+                Variable(0, 1, 'down', 5): 'SEVEN',
+                Variable(0, 1, 'across', 3): 'SIX',
+            },
+            True
+        ),
+        (
+            {
+                Variable(0, 1, 'down', 5): 'SEVEN',
+                Variable(0, 1, 'across', 3): 'SIX',
+                Variable(1, 4, 'down', 4): 'FIVE',
+                Variable(4, 1, 'across', 4): 'NINE'
+            },
+            True
+        ),
+        (
+            {
+                Variable(0, 1, 'down', 5): 'SEVEN',
+            },
+            True
+        ),
+    ]
+)
+def test_consistent(assignment: dict, expected: bool, crossword0_creator: CrosswordCreator):
+    """
+    * An assignment is a dictionary where the keys are Variable objects and the values are strings
+    representing the words those variables will take on. Note that the assignment may not be complete:
+    not all variables will necessarily be present in the assignment.
+    * An assignment is consistent if it satisfies all of the constraints of the problem: that is to say,
+    all values are distinct, every value is the correct length,
+    and there are no conflicts between neighboring variables.
+    * The function should return True if the assignment is consistent and return False otherwise
+    """
+    output = crossword0_creator.consistent(assignment)
     assert output == expected
