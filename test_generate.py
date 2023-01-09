@@ -12,6 +12,12 @@ def crossword0_creator():
 
 
 @pytest.fixture
+def crossword1_creator():
+    crossword = Crossword("data/structure1.txt", "data/words1.txt")
+    return CrosswordCreator(crossword)
+
+
+@pytest.fixture
 def failed_crossword_creator():
     crossword = Crossword("data/structure0.txt",
                           "data/words0_with_one_missing.txt")
@@ -37,6 +43,12 @@ def test_enforce_node_consistency(crossword0_creator: CrosswordCreator):
 def crossword0_creator_node_consistent(crossword0_creator: CrosswordCreator):
     crossword0_creator.enforce_node_consistency()
     return crossword0_creator
+
+
+@pytest.fixture
+def crossword1_creator_node_consistent(crossword1_creator: CrosswordCreator):
+    crossword1_creator.enforce_node_consistency()
+    return crossword1_creator
 
 
 @pytest.mark.parametrize(
@@ -277,7 +289,6 @@ def test_order_domain_values(var: Variable, assignment: dict, expected: list[str
             },
             [
                 Variable(0, 1, 'across', 3),
-
             ]
         )
     ]
@@ -305,3 +316,33 @@ def test_select_unassigned_variable(assignment: dict[Variable: str], expected_in
         assignment
     )
     assert output in expected_in
+
+
+def test_backtrack(crossword1_creator_node_consistent: CrosswordCreator):
+    """
+    It should return a complete satisfactory assignment of variables
+    to values if it is possible to do so.
+    """
+    crossword1_creator_node_consistent.ac3()
+    expected_in_domains = {
+        Variable(2, 1, 'across', 12): {'INTELLIGENCE'},
+        Variable(4, 4, 'across', 5): {'LOGIC'},
+        Variable(6, 5, 'across', 6): {'SEARCH', 'REASON'},
+        Variable(2, 1, 'down', 5): {'INFER'},
+        Variable(1, 7, 'down', 7): {'MINIMAX'},
+        Variable(1, 12, 'down', 7): {'RESOLVE', 'NETWORK'}
+    }
+    output = crossword1_creator_node_consistent.backtrack({})
+    for var in expected_in_domains:
+        assert output[var] in expected_in_domains[var]
+
+
+def test_backtrack_return_None(crossword1_creator_node_consistent: CrosswordCreator):
+    """
+    It should return None if it not possible to find complete satisfactory assignment.
+    """
+    crossword1_creator_node_consistent.ac3()
+    output = crossword1_creator_node_consistent.backtrack({
+        Variable(2, 1, 'across', 12): "bad_word"
+    })
+    assert output == None

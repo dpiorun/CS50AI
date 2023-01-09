@@ -246,7 +246,7 @@ class CrosswordCreator():
         }
 
         if len(vars_with_min_num_of_remaining_vals) == 1:
-            return vars_with_min_num_of_remaining_vals[0]
+            return vars_with_min_num_of_remaining_vals.pop()
 
         return max(
             vars_with_min_num_of_remaining_vals,
@@ -263,7 +263,17 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment
+        var = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(var, assignment):
+            assignment[var] = value
+            if self.consistent(assignment):
+                result = self.backtrack(assignment)
+                if self.assignment_complete(assignment):
+                    return result
+            del assignment[var]
+        return
 
 
 def main():
