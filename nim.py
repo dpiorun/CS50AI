@@ -137,10 +137,10 @@ class NimAI():
         """
         state = tuple(state)
         retval = 0
-        for i in range(len(state)):
-            for j in range(1, state[i] + 1):
-                if (state, (i, j)) in self.q and self.q[state, (i, j)] > retval:
-                    retval = self.q[state, (i, j)]
+        actions = Nim.available_actions(state)
+        for action in actions:
+            if (state, action) in self.q and self.q[state, action] > retval:
+                retval = self.q[state, action]
 
         return retval
 
@@ -159,7 +159,20 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        actions = Nim.available_actions(state)
+        if epsilon and random.random() > self.epsilon:
+            return random.choice(list(actions))
+
+        best_reward = self.best_future_reward(state)
+        if best_reward > 0:
+            best_actions = [
+                action
+                for state_q, action
+                in [key for key in list(self.q.keys()) if self.q[key] == best_reward]
+                if state_q == tuple(state) and action in actions
+            ]
+            return random.choice(best_actions)
+        return random.choice(list(actions))
 
 
 def train(n):
