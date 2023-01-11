@@ -33,3 +33,44 @@ def test_load_data(index: int, expected_evidence: list[Union[int, float]], expec
     assert evidence[index] == expected_evidence
     assert labels[index] == expected_label
     assert len(evidence) == len(labels) == NUM_OF_ROWS
+
+
+@pytest.mark.parametrize(
+    "labels,predictions,expected_sensitivity,expected_specificity",
+    [
+        (
+            [1, 0],
+            [1, 0],
+            1,
+            1
+        ),
+        (
+            [1, 0],
+            [0, 1],
+            0,
+            0
+        ),
+        (
+            [1, 0],
+            [1, 1],
+            1,
+            0
+        ),
+        (
+            [1, 0],
+            [0, 0],
+            0,
+            1
+        ),
+        (
+            [1, 1, 0, 0],
+            [1, 0, 0, 1],
+            0.5,
+            0.5
+        )
+    ]
+)
+def test_evaluate(labels: list[int], predictions: list[int], expected_sensitivity: float, expected_specificity: float):
+    sensitivity, specificity = evaluate(labels, predictions)
+    assert sensitivity == expected_sensitivity
+    assert specificity == expected_specificity
