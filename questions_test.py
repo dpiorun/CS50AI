@@ -1,3 +1,4 @@
+from io import StringIO
 import pytest
 from questions import *
 
@@ -149,3 +150,31 @@ def test_top_sentences(
     """
     output = top_sentences(query, sentences, idfs, n)
     assert output == expected
+
+
+@pytest.mark.parametrize(
+    "query,expected",
+    [
+        (
+            StringIO("What are the types of supervised learning?\n"),
+            "Types of supervised learning algorithms include Active learning , classification and regression.\n"
+        ),
+        (
+            StringIO("When was Python 3.0 released?\n"),
+            "Python 3.0 was released on 3 December 2008.\n"
+        ),
+        (
+            StringIO("How do neurons connect in a neural network?\n"),
+            "Neurons of one layer connect only to neurons of the immediately preceding and immediately following layers.\n"
+        )
+    ]
+)
+def test_main(query: StringIO, expected: str, monkeypatch, capsys):
+    """
+    It should answer properly for the given questions with the given corpus.
+    """
+    monkeypatch.setattr("sys.argv", ["questions.py", "corpus"])
+    monkeypatch.setattr('sys.stdin', query)
+    main()
+    out, _ = capsys.readouterr()
+    assert out == "Query: " + expected

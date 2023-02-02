@@ -69,8 +69,8 @@ def tokenize(document):
     punctuation or English stopwords.
     """
     return [
-        word.lower()
-        for word in nltk.tokenize.word_tokenize(document)
+        word
+        for word in nltk.tokenize.word_tokenize(document.lower())
         if word not in string.punctuation
         and word not in nltk.corpus.stopwords.words("english")
     ]
