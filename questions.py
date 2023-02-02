@@ -144,17 +144,17 @@ def top_sentences(query, sentences, idfs, n):
     the query, ranked according to idf. If there are ties, preference should
     be given to sentences that have a higher query term density.
     """
-    matching_word_measures = {
+    sentences_rank = {
         sentence: (0, 0)   # tuple(matching word measure, query term density)
         for sentence in sentences
     }
     for sentence in sentences:
         for word in set(sentences[sentence]):
             if word in query:
-                matching_word_measures.update({
+                sentences_rank.update({
                     sentence: (
-                        matching_word_measures[sentence][0] + idfs[word],
-                        matching_word_measures[sentence][1] + (
+                        sentences_rank[sentence][0] + idfs[word],
+                        sentences_rank[sentence][1] + (
                             sentences[sentence].count(word)
                             / len(sentences[sentence])
                         )
@@ -164,7 +164,7 @@ def top_sentences(query, sentences, idfs, n):
     return [
         sentence
         for sentence in sorted(
-            matching_word_measures, key=matching_word_measures.get, reverse=True
+            sentences_rank, key=sentences_rank.get, reverse=True
         )
     ][:n]
 
