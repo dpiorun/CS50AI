@@ -169,7 +169,12 @@ def test_top_sentences(
         )
     ]
 )
-def test_main(query: StringIO, expected: str, monkeypatch, capsys):
+def test_main(
+    query: StringIO,
+    expected: str,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture
+):
     """
     It should answer properly for the given questions with the given corpus.
     """
