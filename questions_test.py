@@ -97,9 +97,55 @@ def test_compute_idfs(documents: dict[str, list[str]], idfs: dict[str, float]):
 def test_top_files(
     query: set[str],
     n: int,
-    expected,
+    expected: list[str],
     documents: dict[str, list[str]],
     idfs: dict[str, float]
 ):
     output = top_files(query, documents, idfs, n)
-    assert expected == output
+    assert output == expected
+
+
+@pytest.mark.parametrize(
+    "query,sentences,n,expected",
+    [
+        (
+            {"dog", "cat"},
+            {
+                "A cat chases a mouse.": ["cat", "chases", "mouse"],
+                "This is the dog.": ["dog"],
+                "Bad dog chases a cat.": ["bad", "dog", "chases", "cat"],
+                "Bad dog chases a cat, not a dog.": ["bad", "dog", "chases", "cat", "dog"],
+            },
+            2,
+            [
+                "This is the dog.",  # this have a `query term density`=1.0
+                "Bad dog chases a cat, not a dog.",  # this have a `query term density`=0.6
+            ]
+        )
+    ]
+)
+def test_top_sentences(
+    query: set[str],
+    sentences: dict[str, list[str]],
+    n: int,
+    expected: list[str],
+    idfs: dict[str, float]
+):
+    """
+    It should, given a query (a set of words), sentences (a dictionary mapping sentences to a list
+    of their words), and idfs (a dictionary mapping words to their IDF values), return a list of
+    the n top sentences that match the query, ranked according to IDF.
+    * The returned list of sentences should be of length n and should be ordered with the best
+    match first.
+    * Sentences should be ranked according to “matching word measure”: namely, the sum of IDF
+    values for any word in the query that also appears in the sentence. Note that term frequency
+    should not be taken into account here, only inverse document frequency.
+    * If two sentences have the same value according to the matching word measure, then sentences
+    with a higher “query term density” should be preferred. Query term density is defined as the
+    proportion of words in the sentence that are also words in the query. For example, if a
+    sentence has 10 words, 3 of which are in the query, then the sentence’s query term density
+    is 0.3.
+    * You may assume that n will not be greater than the total number of sentences.
+    """
+    output = top_sentences(query, sentences, idfs, n)
+    assert output == expected
