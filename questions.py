@@ -1,3 +1,4 @@
+from math import log
 import os
 import string
 import nltk
@@ -83,7 +84,28 @@ def compute_idfs(documents):
     Any word that appears in at least one of the documents should be in the
     resulting dictionary.
     """
-    raise NotImplementedError
+    retval = {}
+    num_of_documents = len(documents)
+    words = set(
+        [
+            word
+            for word in
+            [
+                value
+                for values in documents.values()
+                for value in values
+            ]
+        ]
+    )
+
+    for word in words:
+        count = 0
+        for document_words in documents.values():
+            if word in document_words:
+                count = count + 1
+        retval[word] = log(num_of_documents / count)
+
+    return retval
 
 
 def top_files(query, files, idfs, n):
